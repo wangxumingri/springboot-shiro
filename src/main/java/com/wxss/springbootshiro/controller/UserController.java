@@ -2,10 +2,8 @@ package com.wxss.springbootshiro.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 //@RequestMapping("user")
@@ -17,10 +15,9 @@ public class UserController {
         return "Hello";
     }
 
-    @RequestMapping("/testThymeleaf")
+    @RequestMapping("/index")
     public String testThymeleaf(Model model){
-        model.addAttribute("message","Hello World");
-        return "testThymeleaf";
+        return "index";
     }
 
     @RequestMapping("/add")
@@ -33,9 +30,8 @@ public class UserController {
         return "/user/update";
     }
 
-    @RequestMapping("/login")
+    @RequestMapping("/toLogin")
     public String login(){
-        return "/login";
+        return "login";
     }
-
 }

@@ -10,9 +10,8 @@ import org.apache.shiro.util.ByteSource.Util;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
-public class MyRealm extends AuthorizingRealm {
+public class MyRealm2 extends AuthorizingRealm {
     /**
      * 模拟数据库账号和密码
      */
@@ -20,8 +19,8 @@ public class MyRealm extends AuthorizingRealm {
     private static final Map<String,String> ACCOUNT_SALT_MAP = new HashMap<>();
 
     {
-        ACCOUNT_PASSWORD_MAP.put("admin","9aa75c4d70930277f59d117ce19188b0");
-        ACCOUNT_PASSWORD_MAP.put("test","c39fcff9da370d9d9b3b24a929a7efc5");
+        ACCOUNT_PASSWORD_MAP.put("admin","28078bcf86c16b80329aa523afb74da57ffb8a11");
+        ACCOUNT_PASSWORD_MAP.put("test","ca7c8f07d3a3050d9eff15fc6f3fc4644a056cb3");
 
         ACCOUNT_SALT_MAP.put("admin", "admin");
         ACCOUNT_SALT_MAP.put("test","test");
@@ -45,7 +44,7 @@ public class MyRealm extends AuthorizingRealm {
         // 当前realm对象的name
         String realmName = getName();
         // 盐值：唯一字符串，可使用uuid或者用户名，在用户注册时，和注册信息一起保存到数据库中
-        ByteSource salt = ByteSource.Util.bytes(ACCOUNT_SALT_MAP.get(principal));
+        ByteSource salt = Util.bytes(ACCOUNT_SALT_MAP.get(principal));
         // 校验密码
         /**
          * 1. 用户名
@@ -58,17 +57,17 @@ public class MyRealm extends AuthorizingRealm {
 
 
     public static void main(String[] args) {
-        String algorithmName = "MD5";
+        String algorithmName = "SHA1";
         int hashIterations = 3;
 
         Object credential = "123456";
-        ByteSource salt = ByteSource.Util.bytes("admin");
+        ByteSource salt = Util.bytes("admin");
         SimpleHash simpleHash = new SimpleHash(algorithmName, credential, salt, hashIterations);
         // 9aa75c4d70930277f59d117ce19188b0
         System.out.println("admin 盐值加密结果: "+ simpleHash.toString());
 
         credential = "qwerty";
-        salt = ByteSource.Util.bytes("test");
+        salt = Util.bytes("test");
         simpleHash = new SimpleHash(algorithmName, credential, salt, hashIterations);
 
         // c39fcff9da370d9d9b3b24a929a7efc5
