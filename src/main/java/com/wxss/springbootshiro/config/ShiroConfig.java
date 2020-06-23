@@ -33,6 +33,7 @@ public class ShiroConfig {
         shiroFilterFactoryBean.setSecurityManager(securityManager);
         // 设置登录Url：访问需要 需要认证的资源的时，如果认证未认证，Shiro会重定向到url
         shiroFilterFactoryBean.setLoginUrl("/toLogin");
+        shiroFilterFactoryBean.setUnauthorizedUrl("unauthorized");
         // 配置过滤器
         /**
          * authc : 需要认证，且通过后访问
@@ -44,10 +45,15 @@ public class ShiroConfig {
         Map<String, String> filterChainDefinitions  = new HashMap<>();
 //        filterChainDefinitions.put("/index","anon");
         filterChainDefinitions.put("/login","anon");
-        filterChainDefinitions.put("/logout","anon");
+//        filterChainDefinitions.put("/logout","anon");
 
-        filterChainDefinitions.put("/add","authc");
-        filterChainDefinitions.put("/update","authc");
+        // 需要认证
+        filterChainDefinitions.put("/list","authc");
+        // 需要角色认证
+        filterChainDefinitions.put("/add","roles[user]");
+        filterChainDefinitions.put("/update","roles[admin]");
+        // 需要权限认证
+        filterChainDefinitions.put("/delete","perms[\"user:delete\"]");
         // 设置所有资源都需要都需要认证
         filterChainDefinitions.put("/**","authc");
         // 默认情况下，退出后，自动跳转到首页
@@ -70,22 +76,27 @@ public class ShiroConfig {
 //    }
     /**
      * 创建Shiro的安全管理器
-     * @param authenticator
+     * @param
      * @return
      */
     @Bean("defaultWebSecurityManager")
-    public DefaultWebSecurityManager registerDefaultSecurityManager(@Qualifier("modularRealmAuthenticator")Authenticator authenticator){
+//    public DefaultWebSecurityManager registerDefaultSecurityManager(@Qualifier("modularRealmAuthenticator")Authenticator authenticator){
+    public DefaultWebSecurityManager registerDefaultSecurityManager(@Qualifier("myRealm")Realm realm){
         DefaultWebSecurityManager defaultWebSecurityManager = new DefaultWebSecurityManager();
 
         // 使用1个Realm
-        // defaultWebSecurityManager.setRealm(realm);
+         defaultWebSecurityManager.setRealm(realm);
 
         // 使用多Realm
-        defaultWebSecurityManager.setAuthenticator(authenticator);
+//        defaultWebSecurityManager.setAuthenticator(authenticator);
         return defaultWebSecurityManager;
     }
 
-
+    /**
+     * 配置插件式认证器模块
+     * @param realms
+     * @return
+     */
     @Bean
     public ModularRealmAuthenticator modularRealmAuthenticator (Realm ...realms){
         ModularRealmAuthenticator modularRealmAuthenticator = new ModularRealmAuthenticator();

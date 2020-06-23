@@ -2,15 +2,14 @@ package com.wxss.springbootshiro.shiro;
 
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
 import org.apache.shiro.util.ByteSource.Util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class MyRealm extends AuthorizingRealm {
     /**
@@ -28,14 +27,37 @@ public class MyRealm extends AuthorizingRealm {
 
     }
 
+    /**
+     * 权限校验
+     * @param principalCollection
+     * @return
+     */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
         System.out.println("授权");
-        return null;
+        // 登录账号
+        Object principal = principalCollection.getPrimaryPrincipal();
+        // 角色集合
+        Set<String> roles = new HashSet<>();
+        roles.add("user");
+        if ("admin".equals(principal)){
+            roles.add("admin");
+        }
+        // 模拟授权
+        SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo(roles);
+        return authorizationInfo;
     }
 
+    /**
+     * 用户认证
+     * @param authenticationToken
+     * @return
+     * @throws AuthenticationException
+     */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
+        System.out.println("认证");
+
         // 认证的实体信息:可以是username，或者封装的实体
         Object principal = authenticationToken.getPrincipal();
         // 校验账号

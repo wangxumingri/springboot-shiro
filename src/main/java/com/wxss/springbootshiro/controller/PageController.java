@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 //@RequestMapping("user")
-public class UserController {
+public class PageController {
 
     @RequestMapping("/hello")
     @ResponseBody
@@ -20,6 +20,11 @@ public class UserController {
         return "index";
     }
 
+    @RequestMapping("/toLogin")
+    public String login(){
+        return "login";
+    }
+
     @RequestMapping("/add")
     public String add(){
         return "/user/add";
@@ -30,8 +35,20 @@ public class UserController {
         return "/user/update";
     }
 
-    @RequestMapping("/toLogin")
-    public String login(){
-        return "login";
+
+    @RequestMapping("/delete")
+    public String delete(){
+        return "/user/delete";
     }
+
+    @RequestMapping("/list")
+    public String list(){
+        return "/user/list";
+    }
+
+    @RequestMapping("/unauthorized")
+    public String unauthorized(){
+        return "unauthorized";
+    }
+
 }
