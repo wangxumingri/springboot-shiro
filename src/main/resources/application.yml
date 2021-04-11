@@ -1,0 +1,31 @@
+
+server:
+  port: 8080
+  servlet:
+    context-path: /shiro
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://106.14.104.20:3306/shiro_demo?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+    username: root
+    password: 1qaz@WSX
+  redis:
+    database: 0
+    host: 106.14.104.20
+    port: 6379
+    password: 1qaz@WSX
+    jedis:
+      pool:
+        # 连接池最大连接数
+        max-active: 8
+        # 连接池最大等待时间：-1表示没限制
+        max-wait: -1ms
+        # 连接池最大连接空闲数
+        max-idle: 8
+        # 连接池最小连接空闲数
+        min-idle: 0
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/*.xml
+  type-aliases-package:

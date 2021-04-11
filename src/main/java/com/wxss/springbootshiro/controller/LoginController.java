@@ -59,4 +59,10 @@ public class LoginController {
         subject.logout();
         return "redirect:toLogin";
     }
+
+
+    @GetMapping("/myLogout")
+    public void myLogout(){
+        System.out.println("myLogout");
+    }
 }

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wxss.springbootshiro.mapper.SysUserMapper">
+    <resultMap id="BaseResultMap" type="com.wxss.springbootshiro.domain.SysUser">
+        <!--@mbg.generated-->
+        <!--@Table sys_user-->
+        <id column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="login_name" jdbcType="VARCHAR" property="loginName"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="salt" jdbcType="VARCHAR" property="salt"/>
+        <result column="phone_number" jdbcType="VARCHAR" property="phoneNumber"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
+        <result column="del_flag" jdbcType="BOOLEAN" property="delFlag"/>
+        <result column="is_admin" jdbcType="BOOLEAN" property="isAdmin"/>
+    </resultMap>
+
+
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        user_id, user_name, login_name, `password`, salt, phone_number, `status`, del_flag,is_admin
+    </sql>
+
+    <select id="selectUserByLoginName" parameterType="string" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_user where login_name = #{loginName}
+    </select>
+
+    <select id="selectUser" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_user
+        where login_name = #{loginName} and password = #{password}
+    </select>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from sys_user
+        where user_id = #{userId,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        <!--@mbg.generated-->
+        delete from sys_user
+        where user_id = #{userId,jdbcType=BIGINT}
+    </delete>
+    <insert id="insert" keyColumn="user_id" keyProperty="userId" parameterType="com.wxss.springbootshiro.domain.SysUser"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into sys_user (user_name, login_name, `password`,
+        salt, phone_number, `status`,
+        del_flag)
+        values (#{userName,jdbcType=VARCHAR}, #{loginName,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR},
+        #{salt,jdbcType=VARCHAR}, #{phoneNumber,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
+        #{delFlag,jdbcType=BOOLEAN})
+    </insert>
+    <insert id="insertSelective" keyColumn="user_id" keyProperty="userId"
+            parameterType="com.wxss.springbootshiro.domain.SysUser" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into sys_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userName != null">
+                user_name,
+            </if>
+            <if test="loginName != null">
+                login_name,
+            </if>
+            <if test="password != null">
+                `password`,
+            </if>
+            <if test="salt != null">
+                salt,
+            </if>
+            <if test="phoneNumber != null">
+                phone_number,
+            </if>
+            <if test="status != null">
+                `status`,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userName != null">
+                #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="loginName != null">
+                #{loginName,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="salt != null">
+                #{salt,jdbcType=VARCHAR},
+            </if>
+            <if test="phoneNumber != null">
+                #{phoneNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=BOOLEAN},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.wxss.springbootshiro.domain.SysUser">
+        <!--@mbg.generated-->
+        update sys_user
+        <set>
+            <if test="userName != null">
+                user_name = #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="loginName != null">
+                login_name = #{loginName,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                `password` = #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="salt != null">
+                salt = #{salt,jdbcType=VARCHAR},
+            </if>
+            <if test="phoneNumber != null">
+                phone_number = #{phoneNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                `status` = #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=BOOLEAN},
+            </if>
+        </set>
+        where user_id = #{userId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.wxss.springbootshiro.domain.SysUser">
+        <!--@mbg.generated-->
+        update sys_user
+        set user_name = #{userName,jdbcType=VARCHAR},
+        login_name = #{loginName,jdbcType=VARCHAR},
+        `password` = #{password,jdbcType=VARCHAR},
+        salt = #{salt,jdbcType=VARCHAR},
+        phone_number = #{phoneNumber,jdbcType=VARCHAR},
+        `status` = #{status,jdbcType=VARCHAR},
+        del_flag = #{delFlag,jdbcType=BOOLEAN}
+        where user_id = #{userId,jdbcType=BIGINT}
+    </update>
+</mapper>

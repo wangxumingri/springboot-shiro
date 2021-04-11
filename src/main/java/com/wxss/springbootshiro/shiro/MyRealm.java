@@ -1,5 +1,12 @@
 package com.wxss.springbootshiro.shiro;
 
+import com.wxss.springbootshiro.domain.SysPermission;
+import com.wxss.springbootshiro.domain.SysRole;
+import com.wxss.springbootshiro.domain.SysUser;
+import com.wxss.springbootshiro.service.LoginService;
+import com.wxss.springbootshiro.service.PermissionService;
+import com.wxss.springbootshiro.service.RoleService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
@@ -7,76 +14,105 @@ import org.apache.shiro.crypto.hash.SimpleHash;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
-import org.apache.shiro.util.ByteSource.Util;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class MyRealm extends AuthorizingRealm {
-    /**
-     * 模拟数据库账号和密码
-     */
-    private static final Map<String,String> ACCOUNT_PASSWORD_MAP = new HashMap<>();
-    private static final Map<String,String> ACCOUNT_SALT_MAP = new HashMap<>();
 
-    {
-        ACCOUNT_PASSWORD_MAP.put("admin","9aa75c4d70930277f59d117ce19188b0");
-        ACCOUNT_PASSWORD_MAP.put("test","c39fcff9da370d9d9b3b24a929a7efc5");
+    @Autowired
+    private LoginService loginService;
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private PermissionService permissionService;
 
-        ACCOUNT_SALT_MAP.put("admin", "admin");
-        ACCOUNT_SALT_MAP.put("test","test");
-
-    }
 
     /**
      * 权限校验
+     *
      * @param principalCollection
      * @return
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
-        System.out.println("授权");
         // 登录账号
         Object principal = principalCollection.getPrimaryPrincipal();
-        // 角色集合
-        Set<String> roles = new HashSet<>();
-        roles.add("user");
-        if ("admin".equals(principal)){
-            roles.add("admin");
+        log.info("查询用户权限：{}", principal);
+        // 取出用户
+        SysUser user = ShiroUtils.getSysUser();
+        SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
+        // 管理员拥有所有权限
+        if (user.getAdmin()) {
+            authorizationInfo.addRole("admin");
+            authorizationInfo.addStringPermission("*:*:*");
+        } else {
+            // 角色列表
+            List<SysRole> roleList = roleService.getRoleByUserId(user.getUserId());
+            // 权限列表
+            List<SysPermission> permissionList = permissionService.getPermissionByUserId(user.getUserId());
+            Set<String> roles = roleList.stream().map(SysRole::getRoleCode).collect(Collectors.toSet());
+            Set<String> permissions = permissionList.stream().map(SysPermission::getPermCode).collect(Collectors.toSet());
+            // 角色加入AuthorizationInfo认证对象
+            authorizationInfo.setRoles(roles);
+            // 权限加入AuthorizationInfo认证对象
+            authorizationInfo.setStringPermissions(permissions);
         }
-        // 模拟授权
-        SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo(roles);
+
+        log.info("查询用户{}权限 返回 ：role {},permission {}",principal,authorizationInfo.getRoles(),authorizationInfo.getStringPermissions());
         return authorizationInfo;
     }
 
     /**
      * 用户认证
+     * 2种思路：
+     * 1.自己认证
+     * 2.交给shiro认证
+     * 采用Shiro认证
+     *
      * @param authenticationToken
      * @return
      * @throws AuthenticationException
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
-        System.out.println("认证");
-
-        // 认证的实体信息:可以是username，或者封装的实体
-        Object principal = authenticationToken.getPrincipal();
-        // 校验账号
-        if (null == ACCOUNT_PASSWORD_MAP.get(principal)){
-            throw new UnknownAccountException("用户不存在");
+        UsernamePasswordToken upToken = (UsernamePasswordToken) authenticationToken;
+        String username = upToken.getUsername();
+        String password = "";
+        if (upToken.getPassword() != null) {
+            password = new String(upToken.getPassword());
         }
-        // 当前realm对象的name
-        String realmName = getName();
-        // 盐值：唯一字符串，可使用uuid或者用户名，在用户注册时，和注册信息一起保存到数据库中
-        ByteSource salt = ByteSource.Util.bytes(ACCOUNT_SALT_MAP.get(principal));
-        // 校验密码
+
+        // 前端传的用户信息:可以是用户名，或者封装的类
+        Object principal = authenticationToken.getPrincipal();
+        // 前端传的密码
+        Object credentials = authenticationToken.getCredentials();
+
+        SysUser user = null;
+        try {
+            user = loginService.login(username, password);
+        } catch (AuthenticationException e) { // TODO 可细分其他异常：重试次数...账号锁定...
+            throw new AuthenticationException(e.getMessage(), e);
+        } catch (Exception e) {
+            log.info("对用户[" + username + "]进行登录验证..验证未通过{}", e.getMessage());
+            throw new AuthenticationException(e.getMessage(), e);
+        }
         /**
          * 1. 用户名
          * 2. 用户在数据库中的密码
-         * 3. 该用户密码加密盐值
-         * 4.Realm的名称，调用父类的getName()方法即可
+         * 3. 盐值
+         * 4. Realm的名称，调用父类的getName()方法即可
          */
-        return  new SimpleAuthenticationInfo(principal,ACCOUNT_PASSWORD_MAP.get(principal),salt, realmName);
+        SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(user, user.getPassword(), ByteSource.Util.bytes(user.getSalt()), getName());
+
+        return info;
     }
+    public void clearCache(PrincipalCollection principals){
+        super.clearCache(principals);
+    }
+
 
 
     public static void main(String[] args) {
@@ -85,16 +121,19 @@ public class MyRealm extends AuthorizingRealm {
 
         Object credential = "123456";
         ByteSource salt = ByteSource.Util.bytes("admin");
+        System.out.println(salt.toBase64());
+        System.out.println(salt.toHex());
         SimpleHash simpleHash = new SimpleHash(algorithmName, credential, salt, hashIterations);
         // 9aa75c4d70930277f59d117ce19188b0
-        System.out.println("admin 盐值加密结果: "+ simpleHash.toString());
+        System.out.println("admin 盐值加密结果: " + simpleHash.toString());
 
         credential = "qwerty";
         salt = ByteSource.Util.bytes("test");
         simpleHash = new SimpleHash(algorithmName, credential, salt, hashIterations);
-
+        System.out.println(salt.toBase64());
+        System.out.println(salt.toHex());
         // c39fcff9da370d9d9b3b24a929a7efc5
-        System.out.println("test 盐值加密结果: "+ simpleHash.toString());
+        System.out.println("test 盐值加密结果: " + simpleHash.toString());
 
     }
 }
